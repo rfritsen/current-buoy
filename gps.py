@@ -1,5 +1,5 @@
 '''
-GPS Interfacing with Raspberry Pi using Pyhton
+GPS Interfacing with Raspberry Pi using Python
 http://www.electronicwings.com
 '''
 import serial               #import serial pacakge
