@@ -1,4 +1,4 @@
-#
+# Expanding on read_register to get accurate calculation for compass heading
 
 # Import external packages
 import smbus
@@ -21,13 +21,11 @@ jc_rad_dec     = -.1844813 # JC radian declination.
 pi             = 3.14159265359
 
 # Initialize Magnetometer
+# Write to Configuration Register A, B, and Mode register.
 
 def Magnetometer_Init():
-    # Write to Configuration Register A. TODO what is this?
     bus.write_byte_data(Device_Address, Register_A, 0x70)
-    # Write to Configuration Register B for gain. TODO what is this?
     bus.write_byte_data(Device_Address, Register_B, 0xa0)
-    # Write to Mode register. TODO what is this?
     bus.write_byte_data(Device_Address, Register_mode, 0)
 
 # Read raw 16-bit values from magnetometer
@@ -57,15 +55,41 @@ gpsd = gps(mode=WATCH_ENABLE|WATCH_NEWSTYLE)
 bus = smbus.SMBus(1) 
 Device_Address = 0x1e # Device address. TODO How do we find this?
 Magnetometer_Init()
-print('X\tY\tZ') # TODO
 
-    # Compass
+
 x = read_raw_data(X_axis_H)
 z = read_raw_data(Z_axis_H)
 y = read_raw_data(Y_axis_H)
+jc_rad_dec     = -.1844813 # JC radian declination. 
+az = 0
+calc = "base"
 
+if x < 0:
+    az = 180 - (math.atan2(y, x))*(180/pi) + jc_rad_dec
+    calc = "Calc 1"
+elif x > 0 and y<0:
+    az = -(math.atan2(y,x))*(180/pi) + jc_rad_dec
+    calc = "Calc 2"
+elif x>0 and y>0:
+    az = 360-(math.atan2(y,x))*(180/pi) + jc_rad_dec
+    calc = "Calc 3"
+else:
+    az = "Something else"
+
+# heading = math.atan2(y, x)
+
+#     if(heading > 2*pi):
+#         heading = heading - 2*pi
+#     if(heading <0):
+#         heading = heading + 2*pi
+#     heading_angle = int(heading* 180/pi)
+
+
+print('X\tY\tZ\tCompass\tCalc')
 print(
     x, "\t",
     y, "\t",
-    z, "\t"
+    z, "\t",
+    az, "\t", 
+    calc
 )
